@@ -57,7 +57,7 @@ public class JwtHelper {
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + TOKEN_VALID))
-                .signWith(SignatureAlgorithm.ES256,SECRET_KEY)
+                .signWith(SignatureAlgorithm.HS256,SECRET_KEY)
                 .compact();
     }
 

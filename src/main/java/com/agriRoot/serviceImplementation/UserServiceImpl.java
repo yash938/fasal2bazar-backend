@@ -10,16 +10,22 @@ import com.agriRoot.repository.UserRepo;
 import com.agriRoot.Exception.UserNotFound;
 import com.agriRoot.service.ImageFile;
 import com.agriRoot.service.UserService;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
-
+@Slf4j
 @Service
 public class UserServiceImpl implements UserService {
     @Autowired
@@ -28,6 +34,9 @@ public class UserServiceImpl implements UserService {
     private UserRepo userRepo;
     @Autowired
     private RoleRepo roleRepo;
+
+    @Value("${user.profile.image.path}")
+    private String imagePath;
 
     @Autowired
     private ImageFile imageFile;
@@ -55,7 +64,7 @@ public class UserServiceImpl implements UserService {
         user.setPanNumber(userDto.getPanNumber());
         user.setEmail(userDto.getEmail());
         user.setAdhaarNumber(userDto.getAdhaarNumber());
-
+        user.setImage(userDto.getImage());
         User updateUser = userRepo.save(user);
         return modelMapper.map(updateUser,UserDto.class);
     }
@@ -72,6 +81,18 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteUser(int id) {
         User user = userRepo.findById(id).orElseThrow(() -> new UserNotFound("User is not found"));
+        String path = imagePath + user.getImage();
+
+        try{
+            Path path1 = Paths.get(path);
+            Files.delete(path1);
+        }catch (NoSuchFileException ex){
+            log.info("User image not found in folder {}");
+            ex.printStackTrace();
+        }catch (Exception ex){
+            ex.printStackTrace();
+        }
+
         userRepo.delete(user);
     }
 
@@ -88,4 +109,6 @@ public class UserServiceImpl implements UserService {
         List<UserDto> collect = byNameContaining.stream().map(byName -> modelMapper.map(byNameContaining, UserDto.class)).collect(Collectors.toList());
         return collect;
     }
+
+
 }

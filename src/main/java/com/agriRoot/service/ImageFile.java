@@ -4,7 +4,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
 
-public interface ImageFile {
+public interface  ImageFile {
 
     String uploadFile(MultipartFile multipartFile,String path);
     InputStream getResource(String path,String name);

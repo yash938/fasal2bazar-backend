@@ -6,18 +6,24 @@ import com.agriRoot.domain.PaegableResponse;
 import com.agriRoot.dto.UserDto;
 import com.agriRoot.service.ImageFile;
 import com.agriRoot.service.UserService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDate;
 import java.util.List;
 
-
+@Slf4j
 @RestController
 @RequestMapping("/user")
 public class UserController {
@@ -83,13 +89,21 @@ public class UserController {
     }
 
     @PostMapping("/image/{id}")
-    public ResponseEntity<ImageResponse> uploadFile(@PathVariable int id, @RequestParam("image") MultipartFile image){
-        String imageName = imageFile.uploadFile(image, imageUploadPath);
+    public ResponseEntity<UserDto> uploadFile(@PathVariable int id, @RequestParam("image") MultipartFile image){
         UserDto singleUser = userService.getUserById(id);
+        String imageName = imageFile.uploadFile(image, imageUploadPath);
         singleUser.setImage(imageName);
         UserDto userDto = userService.updateUser(id, singleUser);
-        ImageResponse images = ImageResponse.builder().message("Image is successfully uploaded").success(true).httpStatus(HttpStatus.OK).imageName(imageName).build();
-        return new ResponseEntity<>(images,HttpStatus.OK);
+        return new ResponseEntity<>(userDto,HttpStatus.OK);
+    }
+
+    @GetMapping("/image/{id}")
+    public void ServeImage(@PathVariable int id, HttpServletResponse response) throws IOException {
+        UserDto singleUser = userService.getUserById(id);
+        log.info("user image name {}",singleUser.getImage());
+        InputStream resource = imageFile.getResource(imageUploadPath, singleUser.getImage());
+        response.setContentType(MediaType.IMAGE_JPEG_VALUE);
+        StreamUtils.copy(resource,response. getOutputStream());
     }
 
 }

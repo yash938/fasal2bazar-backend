@@ -35,12 +35,7 @@ public class ImageFileImpl implements ImageFile {
             // Create the directory if it doesn't exist
             File file = new File(path);
             if (!file.exists()) {
-                boolean created = file.mkdirs(); // Create directories
-                if (created) {
-                    log.info("Directory created at: {}", path);
-                } else {
-                    log.warn("Failed to create directory: {}", path);
-                }
+               file.mkdirs();
             }
 
             try (InputStream inputStream = multipartFile.getInputStream()) {
